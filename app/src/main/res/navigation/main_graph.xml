@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main_graph"
+    app:startDestination="@id/currencySelectionFragment">
+
+    <fragment
+        android:id="@+id/currencySelectionFragment"
+        android:name="com.tui.app.ui.presentation.view.currency_selection.CurrencySelectionFragment"
+        android:label="ChallengeListFragment">
+        <action
+            android:id="@+id/currencyDetail"
+            app:destination="@id/currencyDetailFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/currencyDetailFragment"
+        android:name="com.tui.app.ui.presentation.view.conversion.ConversionDetailFragment"
+        android:label="ChallengeDetailFragment">
+
+        <action
+            android:id="@+id/successAction"
+            app:destination="@id/successfullTransactionFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/successfullTransactionFragment"
+        android:name="com.tui.app.ui.presentation.view.successfull_transaction.SuccessfullTransactionFragment"
+        android:label="SuccessfullTransactionFragment">
+        <action
+            android:id="@+id/currencySelectionPop"
+            app:popUpTo="@id/currencySelectionFragment"
+            app:destination="@id/currencySelectionFragment" />
+    </fragment>
+</navigation>
