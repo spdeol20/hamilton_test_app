@@ -6,13 +6,16 @@ import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavController
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
+import com.tui.app.R
 import com.tui.app.network.modal.SelectionModal
 import com.tui.app.network.response.CurrencyResponseModal
 import com.tui.app.ui.presentation.component.AppBottomSheetModal
 import com.tui.app.ui.presentation.component.CustomBottomSheet
+import com.tui.app.utils.InternetConnectivity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -86,7 +89,7 @@ class CurrencySelectionViewModal @Inject constructor(
 
 
     }
-    fun calculateCurrency(){
+    fun calculateCurrency(navController: NavController) {
         if (selectCurrentModal.value.amount.isEmpty())return
         val from = toJSONRate().get( selectCurrentModal.value.fromCurrency)
         val toRate = toJSONRate().get( selectCurrentModal.value.toCurrency)
@@ -96,6 +99,7 @@ class CurrencySelectionViewModal @Inject constructor(
         selectCurrentModal.value.conversionAmount = doubleFormat(calc)
         Log.e("TAG", "calculateCurrency find rate ${String.format(Locale.US, "%.2f", calc)} ")
 
+        navController.navigate(R.id.currencyDetailFragment)
     }
     fun doubleFormat(rate: Double): String {
         return String.format(Locale.US, "%.2f", rate)

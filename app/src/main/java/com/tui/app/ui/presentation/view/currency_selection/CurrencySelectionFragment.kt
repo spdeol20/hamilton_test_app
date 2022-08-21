@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
@@ -29,14 +31,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
-import com.tui.app.R
 import com.tui.app.ui.BaseApplication
 import com.tui.app.ui.presentation.component.AppBottomSheetLayout
 import com.tui.app.ui.theme.AppTheme
+import com.tui.app.utils.ConnectionState
+import com.tui.app.utils.InternetConnectivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @ExperimentalMaterialApi
@@ -51,7 +56,16 @@ class CurrencySelectionFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        viewModel.hitToGetCurrency("USD")
+        lifecycleScope.launch {
+            observer()
+        }
+    }
+    suspend fun observer(){
+        InternetConnectivity.status.collectLatest {
+            if (it == ConnectionState.Available){
+                viewModel.hitToGetCurrency("USD")
+            }
+        }
     }
 
     override fun onCreateView(
@@ -63,10 +77,22 @@ class CurrencySelectionFragment : Fragment() {
             setContent {
                 AppTheme(darkTheme = false) {
                     Surface(color = MaterialTheme.colors.background) {
-                        MainContent(viewModel)
+                        InternetCompose(viewModel)
                     }
                 }
             }
+        }
+    }
+}
+@Composable
+fun InternetCompose(viewModel: CurrencySelectionViewModal) {
+    val challenge by InternetConnectivity.status.collectAsState(initial = ConnectionState.Unavailable)
+    if (challenge == ConnectionState.Available){
+        MainContent(viewModel = viewModel)
+    }else{
+        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+            Icon(imageVector = Icons.Default.Info, contentDescription = "connection", tint = MaterialTheme.colors.primary, modifier = Modifier.size(100.dp))
+            Text(text = "Internet is not available", fontSize = 20.sp)
         }
     }
 }
@@ -164,14 +190,15 @@ fun Amount(viewModel: CurrencySelectionViewModal) {
 
         TextField(
             value = text,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
             modifier = Modifier
                 .padding(start = 50.dp, end = 50.dp)
                 .fillMaxWidth()
                 .padding(top = 10.dp),
             onValueChange = { newText ->
                 text = newText
-                viewModel.selectCurrentModal.value.amount = text.text
+                viewModel.selectCurrentModal.value =
+                viewModel.selectCurrentModal.value.copy(amount = text.text)
             },
             colors = TextFieldDefaults.textFieldColors(
                 backgroundColor = Color.White
@@ -189,18 +216,18 @@ fun Amount(viewModel: CurrencySelectionViewModal) {
 @Composable
 fun Button(viewModel: CurrencySelectionViewModal) {
     val navController = LocalView.current.findNavController()
+    val data by viewModel.selectCurrentModal.collectAsState()
     Box(modifier = Modifier.fillMaxHeight(1f), contentAlignment = Alignment.BottomCenter){
         Button(
             onClick = {
                 //your onclick code
-                viewModel.calculateCurrency()
-                navController.navigate(R.id.currencyDetailFragment)
+                viewModel.calculateCurrency(navController)
             },
             colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.primary),
             modifier = Modifier
                 .padding(top = 100.dp, start = 30.dp, end = 30.dp, bottom = 80.dp)
                 .height(50.dp)
-                .fillMaxWidth()
+                .fillMaxWidth(), enabled = data.amount.isNotEmpty()
         )
 
         {

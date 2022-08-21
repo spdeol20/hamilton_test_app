@@ -2,6 +2,7 @@ package com.tui.app.module
 
 import com.google.gson.GsonBuilder
 import com.tui.app.network.ApiService
+import com.tui.app.utils.InternetConnectivity
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -44,5 +45,9 @@ object NetworkModule {
     @Singleton
     @Provides
     fun provideApiService(retrofit: Retrofit): ApiService = retrofit.create(ApiService::class.java)
+
+   @Singleton
+    @Provides
+    fun provideInternetStatus(): InternetConnectivity = InternetConnectivity()
 
 }

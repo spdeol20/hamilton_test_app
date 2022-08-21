@@ -55,7 +55,7 @@ fun TimeOutDialog(
     onSelect: (flag: Boolean) -> Unit,
 ) {
     Column(content = {
-        Text(text = "Sorry you have time out. Please start over again", fontSize = 22.sp, modifier = Modifier
+        Text(text = "Sorry you have timed out. Please start over again", fontSize = 20.sp, modifier = Modifier
             .padding(15.dp), style =   MaterialTheme.typography.h4)
          Button(onClick = { onSelect(true) }  , modifier = Modifier
         .height(40.dp)) {
